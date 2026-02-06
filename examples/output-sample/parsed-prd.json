@@ -1,0 +1,76 @@
+{
+  "project": "E-Commerce Platform v2",
+  "completeness_score": 0.87,
+  "personas": [
+    { "name": "Comprador (Maria)", "age": 28, "context": "mobile-first, PIX" },
+    { "name": "Vendedor (João)", "age": 35, "context": "dashboard, estoque" }
+  ],
+  "features": [
+    {
+      "id": "F001",
+      "name": "Autenticação de Usuário",
+      "priority": "high",
+      "complexity": "medium",
+      "stories": ["US001", "US002", "US003"],
+      "dependencies": []
+    },
+    {
+      "id": "F002",
+      "name": "Catálogo de Produtos",
+      "priority": "high",
+      "complexity": "high",
+      "stories": ["US004", "US005", "US006"],
+      "dependencies": ["F001"]
+    },
+    {
+      "id": "F003",
+      "name": "Checkout",
+      "priority": "high",
+      "complexity": "high",
+      "stories": ["US007"],
+      "dependencies": ["F001", "F002"]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "attributes": ["id", "email", "name", "role", "created_at"],
+      "relationships": [
+        { "target": "Order", "type": "one-to-many" }
+      ]
+    },
+    {
+      "name": "Product",
+      "attributes": ["id", "name", "price", "stock", "category_id", "description"],
+      "relationships": [
+        { "target": "OrderItem", "type": "one-to-many" },
+        { "target": "Category", "type": "many-to-one" }
+      ]
+    },
+    {
+      "name": "Order",
+      "attributes": ["id", "user_id", "status", "total", "created_at"],
+      "relationships": [
+        { "target": "User", "type": "many-to-one" },
+        { "target": "OrderItem", "type": "one-to-many" },
+        { "target": "Payment", "type": "one-to-one" },
+        { "target": "Shipping", "type": "one-to-one" }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "id": "FL001",
+      "name": "Checkout Flow",
+      "feature": "F003",
+      "steps": [
+        "Revisar carrinho",
+        "Selecionar/cadastrar endereço",
+        "Calcular frete",
+        "Selecionar pagamento",
+        "Confirmar pedido",
+        "Email de confirmação"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "omni-architect",
+  "version": "1.0.0",
+  "description": "Orchestration skill that transforms PRDs into validated Mermaid diagrams and Figma design assets",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test tests/",
+    "test:coverage": "c8 node --test tests/",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "validate": "node scripts/validate-skill.js",
+    "example": "node examples/run-example.js"
+  },
+  "keywords": [
+    "agent-skill",
+    "orchestration",
+    "prd",
+    "mermaid",
+    "figma",
+    "product-design",
+    "validation",
+    "diagrams",
+    "architecture",
+    "design-system",
+    "ai-agent",
+    "workflow",
+    "automation"
+  ],
+  "author": "Fabio Eloi <fabioeloi@github.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fabioeloi/omni-architect.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fabioeloi/omni-architect/issues"
+  },
+  "homepage": "https://github.com/fabioeloi/omni-architect#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "skills/",
+    "SKILL.md",
+    "index.js",
+    "lib/"
+  ]
+}

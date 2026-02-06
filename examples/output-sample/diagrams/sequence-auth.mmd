@@ -1,0 +1,17 @@
+%% Omni Architect | Feature: F001 - Authentication | Stories: US001, US002
+sequenceDiagram
+    actor U as Usuário
+    participant F as Frontend
+    participant A as API Gateway
+    participant Auth as Auth Service
+    participant DB as Database
+
+    U->>F: Informa email e senha
+    F->>A: POST /auth/login
+    A->>Auth: Validar credenciais
+    Auth->>DB: Buscar usuário por email
+    DB-->>Auth: Dados do usuário
+    Auth->>Auth: Verificar hash da senha
+    Auth-->>A: JWT + Refresh Token
+    A-->>F: 200 OK { token, refreshToken }
+    F-->>U: Redirecionado ao dashboard

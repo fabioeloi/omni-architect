@@ -1,0 +1,43 @@
+{
+  "overall_score": 0.91,
+  "status": "approved",
+  "timestamp": "2026-02-06T14:30:00Z",
+  "breakdown": {
+    "coverage": {
+      "score": 0.95,
+      "weight": 0.25,
+      "details": "3/3 features cobertas, 6/7 stories mapeadas"
+    },
+    "consistency": {
+      "score": 0.88,
+      "weight": 0.25,
+      "details": "Entidade 'User' consistente em todos diagramas"
+    },
+    "completeness": {
+      "score": 0.90,
+      "weight": 0.20,
+      "details": "Happy + sad path presentes no checkout; falta sad path em auth OAuth"
+    },
+    "traceability": {
+      "score": 0.93,
+      "weight": 0.15,
+      "details": "Todos os nós rastreáveis via comments no .mmd"
+    },
+    "naming_coherence": {
+      "score": 0.88,
+      "weight": 0.10,
+      "details": "Nomenclatura consistente em pt-BR"
+    },
+    "dependency_integrity": {
+      "score": 1.00,
+      "weight": 0.05,
+      "details": "F001→F002→F003 respeitada nos fluxos"
+    }
+  },
+  "warnings": [
+    "US002 (OAuth login) não possui sad path no sequence diagram",
+    "Story US005 (detalhes do produto) não aparece em nenhum diagrama de fluxo"
+  ],
+  "suggestions": [
+    "Adicionar fluxo de erro OAuth (token expirado, conta não vinculada)",
+    "Criar flowchart para naveg

@@ -1,0 +1,59 @@
+%% Omni Architect | Domain Model | Entities: User, Product, Order, OrderItem, Category, Payment, Shipping
+erDiagram
+    USER ||--o{ ORDER : places
+    ORDER ||--|{ ORDER_ITEM : contains
+    PRODUCT ||--o{ ORDER_ITEM : "is in"
+    PRODUCT }|--|| CATEGORY : "belongs to"
+    CATEGORY ||--o{ CATEGORY : "parent of"
+    ORDER ||--|| PAYMENT : "paid via"
+    ORDER ||--|| SHIPPING : "shipped by"
+
+    USER {
+        uuid id PK
+        string email UK
+        string name
+        enum role
+        datetime created_at
+    }
+    PRODUCT {
+        uuid id PK
+        string name
+        decimal price
+        int stock
+        uuid category_id FK
+        text description
+    }
+    ORDER {
+        uuid id PK
+        uuid user_id FK
+        enum status
+        decimal total
+        datetime created_at
+    }
+    ORDER_ITEM {
+        uuid id PK
+        uuid order_id FK
+        uuid product_id FK
+        int quantity
+        decimal unit_price
+    }
+    CATEGORY {
+        uuid id PK
+        string name
+        string slug
+        uuid parent_id FK
+    }
+    PAYMENT {
+        uuid id PK
+        uuid order_id FK
+        enum method
+        enum status
+        decimal amount
+    }
+    SHIPPING {
+        uuid id PK
+        uuid order_id FK
+        string carrier
+        string tracking_code
+        date estimated_delivery
+    }
