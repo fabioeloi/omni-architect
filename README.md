@@ -326,7 +326,7 @@ Contribuições são muito bem-vindas! Veja o guia completo em [`CONTRIBUTING.md
 
 ```bash
 # Fork + Clone
-git clone https://github.com/SEU_USER/omni-architect.git
+git clone https://github.com/fabioeloi/omni-architect.git
 cd omni-architect
 npm install
 
