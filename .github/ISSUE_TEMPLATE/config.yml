@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/fabioeloi/omni-architect/discussions
+    about: Faça perguntas, compartilhe ideias, mostre projetos feitos com Omni Architect
+  - name: 📖 Documentação
+    url: https://github.com/fabioeloi/omni-architect/tree/main/docs
+    about: Leia a documentação completa do projeto
+  - name: 🔍 Exemplos
+    url: https://github.com/fabioeloi/omni-architect/tree/main/examples
+    about: Veja exemplos de uso do Omni Architect
+  - name: 📚 SKILL.md
+    url: https://github.com/fabioeloi/omni-architect/blob/main/SKILL.md
+    about: Especificação completa da skill (padrão agentskills.io)

@@ -1,0 +1,131 @@
+name: ✨ Feature Request
+description: Sugerir uma nova funcionalidade ou melhoria
+title: "[FEATURE] "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por sugerir uma melhoria! Descreva sua ideia abaixo.
+
+  - type: dropdown
+    id: feature-type
+    attributes:
+      label: Tipo de Feature
+      description: Que tipo de feature você está sugerindo?
+      options:
+        - Nova fase no pipeline
+        - Melhoria em fase existente
+        - Novo tipo de diagrama
+        - Nova integração
+        - Melhoria de performance
+        - Melhoria de UX/DX
+        - Documentação
+        - Outro
+    validations:
+      required: true
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Fase Relacionada (se aplicável)
+      description: A qual fase do pipeline esta feature se relaciona?
+      options:
+        - Phase 1 - PRD Parser
+        - Phase 2 - Mermaid Generator
+        - Phase 3 - Logic Validator
+        - Phase 4 - Figma Generator
+        - Phase 5 - Asset Delivery
+        - Orquestração geral
+        - Não se aplica
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema que Esta Feature Resolve
+      description: Descreva o problema ou necessidade
+      placeholder: |
+        Atualmente é difícil/impossível...
+        Isso causa...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solução Proposta
+      description: Como você imagina que esta feature funcionaria?
+      placeholder: |
+        A feature deveria...
+        Quando o usuário...
+        Então...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas Consideradas
+      description: Você considerou outras soluções?
+      placeholder: Poderia ser feito de outra forma...
+
+  - type: textarea
+    id: use-cases
+    attributes:
+      label: Casos de Uso
+      description: Exemplos concretos de como você usaria esta feature
+      placeholder: |
+        Cenário 1: ...
+        Cenário 2: ...
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Exemplos de Código/Configuração
+      description: Como seria a API/config desta feature?
+      render: yaml
+      placeholder: |
+        # Exemplo de como usar a feature
+        feature_option: true
+        feature_config:
+          param1: value1
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridade (sua opinião)
+      description: Quão importante é esta feature para você?
+      options:
+        - 🔥 Crítica - bloqueando meu uso
+        - ⚠️ Alta - muito importante
+        - 📌 Média - seria útil
+        - 💡 Baixa - nice to have
+    validations:
+      required: true
+
+  - type: textarea
+    id: willing-to-contribute
+    attributes:
+      label: Disposição para Contribuir
+      description: Você estaria disposto a implementar esta feature?
+      placeholder: |
+        [ ] Sim, posso implementar com orientação
+        [ ] Sim, posso implementar sozinho
+        [ ] Não tenho disponibilidade no momento
+        [ ] Preciso de ajuda para começar
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Contexto Adicional
+      description: Links, screenshots, referências...
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      options:
+        - label: Verifiquei que não há issue/discussion duplicada
+          required: true
+        - label: Esta feature está alinhada com o propósito do Omni Architect
+          required: true

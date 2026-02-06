@@ -1,0 +1,91 @@
+# Omni Architect Configuration File
+# This file provides example configuration for the Omni Architect orchestration skill
+
+# Project identification
+project_name: "Example Project"
+
+# Figma configuration
+# Get your Figma file key from the URL: https://www.figma.com/file/<FILE_KEY>/...
+# Generate an access token at: https://www.figma.com/developers/api#access-tokens
+figma_file_key: "your-figma-file-key-here"
+# figma_access_token should be set via environment variable: FIGMA_ACCESS_TOKEN
+
+# Design system selection
+# Options: material-3 | apple-hig | tailwind | custom
+design_system: "material-3"
+
+# Localization
+locale: "pt-BR"
+
+# Validation configuration
+# Mode: interactive (manual approval) | batch (queue all) | auto (threshold-based)
+validation_mode: "interactive"
+validation_threshold: 0.85
+
+# Diagram types to generate
+diagram_types:
+  - flowchart
+  - sequence
+  - erDiagram
+  - stateDiagram
+  - C4Context
+  - journey
+
+# Design tokens (used when design_system is "custom")
+design_tokens:
+  colors:
+    primary: "#4A90D9"
+    secondary: "#7B68EE"
+    success: "#2ECC71"
+    error: "#E74C3C"
+    warning: "#FFA500"
+    info: "#1ABC9C"
+    background: "#FFFFFF"
+    surface: "#F5F5F5"
+    text: "#333333"
+  
+  typography:
+    font_family: "Inter"
+    heading_size: 24
+    subheading_size: 18
+    body_size: 14
+    caption_size: 12
+  
+  spacing:
+    base: 8
+    scale: 1.5
+  
+  borders:
+    radius: 8
+    width: 1
+
+# Hooks (optional commands to run at specific pipeline stages)
+hooks:
+  # Executed when validation is approved
+  on_validation_approved: "npm run generate:specs"
+  
+  # Executed when Figma generation completes
+  on_figma_complete: "npm run notify:slack"
+  
+  # Executed on any error
+  on_error: "npm run alert:team"
+
+# Advanced options
+advanced:
+  # Maximum retry attempts for each phase
+  max_retries: 3
+  
+  # Timeout per phase (seconds)
+  phase_timeout: 300
+  
+  # Enable verbose logging
+  verbose: false
+  
+  # Parallel processing for diagram generation
+  parallel_diagrams: true
+  
+  # Cache parsed PRDs
+  cache_prd: true
+  
+  # Output directory
+  output_dir: "./output"
