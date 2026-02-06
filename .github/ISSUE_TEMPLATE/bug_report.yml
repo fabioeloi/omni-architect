@@ -1,0 +1,125 @@
+name: 🐛 Bug Report
+description: Relatar um bug ou comportamento inesperado
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por reportar um bug! Preencha as informações abaixo para nos ajudar a resolver o problema.
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Fase do Pipeline
+      description: Em qual fase do pipeline o bug ocorreu?
+      options:
+        - Phase 1 - PRD Parser
+        - Phase 2 - Mermaid Generator
+        - Phase 3 - Logic Validator
+        - Phase 4 - Figma Generator
+        - Phase 5 - Asset Delivery
+        - Orquestração geral
+        - Configuração
+        - Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição do Bug
+      description: Descreva claramente o comportamento inesperado
+      placeholder: O que aconteceu?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento Esperado
+      description: O que você esperava que acontecesse?
+      placeholder: O que deveria ter acontecido?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Passos para Reproduzir
+      description: Como podemos reproduzir o bug?
+      placeholder: |
+        1. Execute o comando...
+        2. Com o PRD...
+        3. Veja o erro...
+      value: |
+        1. 
+        2. 
+        3. 
+    validations:
+      required: true
+
+  - type: textarea
+    id: prd-snippet
+    attributes:
+      label: Trecho do PRD (se relevante)
+      description: Cole um trecho do PRD que causa o problema
+      render: markdown
+
+  - type: textarea
+    id: error-message
+    attributes:
+      label: Mensagem de Erro
+      description: Cole a mensagem de erro completa
+      render: shell
+
+  - type: input
+    id: version
+    attributes:
+      label: Versão do Omni Architect
+      description: Qual versão você está usando?
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Versão do Node.js
+      description: Execute `node --version`
+      placeholder: "v18.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Sistema Operacional
+      placeholder: "macOS 13.0 / Windows 11 / Ubuntu 22.04"
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuração
+      description: Cole seu `.omni-architect.yml` (remova tokens sensíveis)
+      render: yaml
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Contexto Adicional
+      description: Qualquer outra informação relevante
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      options:
+        - label: Verifiquei que não há issue duplicada
+          required: true
+        - label: Testei na última versão disponível
+          required: true
+        - label: Li a documentação
+          required: false

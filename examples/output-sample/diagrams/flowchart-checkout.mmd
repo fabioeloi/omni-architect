@@ -1,0 +1,51 @@
+flowchart TD
+    Start["🛒 Shopping Cart"] --> Auth{"User Authenticated?"}
+    
+    Auth -->|No| Login["🔐 Login/Register"]
+    Auth -->|Yes| Address["📍 Select Address"]
+    Login --> Address
+    
+    Address --> SavedAddr{"Has Saved Address?"}
+    SavedAddr -->|Yes| SelectAddr["Select from List"]
+    SavedAddr -->|No| NewAddr["Enter New Address"]
+    SelectAddr --> ValidateAddr["Validate Address"]
+    NewAddr --> ValidateAddr
+    
+    ValidateAddr --> Shipping["🚚 Calculate Shipping"]
+    Shipping --> ShippingOpts["Show Shipping Options"]
+    ShippingOpts --> SelectShipping["User Selects Option"]
+    
+    SelectShipping --> Payment["💳 Payment Method"]
+    Payment --> PaymentType{"Payment Type?"}
+    
+    PaymentType -->|PIX| PIXGen["Generate PIX QR Code"]
+    PaymentType -->|Credit Card| CardForm["Enter Card Details"]
+    PaymentType -->|Boleto| BoletoGen["Generate Boleto"]
+    
+    PIXGen --> ProcessPayment["Process Payment"]
+    CardForm --> ProcessPayment
+    BoletoGen --> ProcessPayment
+    
+    ProcessPayment --> PaymentStatus{"Payment Approved?"}
+    
+    PaymentStatus -->|Yes| Confirmed["✅ Order Confirmed"]
+    PaymentStatus -->|No| PaymentError["❌ Payment Failed"]
+    
+    PaymentError --> ErrorMsg["Show Error Message"]
+    ErrorMsg --> Retry{"Retry?"}
+    Retry -->|Yes| Payment
+    Retry -->|No| Cancelled["Order Cancelled"]
+    
+    Confirmed --> Email["📧 Send Confirmation Email"]
+    Confirmed --> UpdateStock["📦 Update Inventory"]
+    Confirmed --> CreateOrder["Create Order Record"]
+    
+    Email --> OrderComplete["Order Processing Complete"]
+    UpdateStock --> OrderComplete
+    CreateOrder --> OrderComplete
+    
+    style Start fill:#4A90D9,stroke:#333,color:#fff
+    style Confirmed fill:#2ECC71,stroke:#333,color:#fff
+    style PaymentError fill:#E74C3C,stroke:#333,color:#fff
+    style Cancelled fill:#95A5A6,stroke:#333,color:#fff
+    style OrderComplete fill:#1ABC9C,stroke:#333,color:#fff

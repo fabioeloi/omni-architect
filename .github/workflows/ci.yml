@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Test on Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Upload coverage
+        if: matrix.node-version == '20.x'
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          fail_ci_if_error: false
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linter
+        run: npm run lint --if-present
+
+  validate-skill:
+    name: Validate SKILL.md
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      
+      - name: Validate SKILL.md frontmatter
+        run: |
+          # Basic YAML validation for SKILL.md frontmatter
+          if ! head -n 100 SKILL.md | grep -q "^---$"; then
+            echo "Error: SKILL.md must have YAML frontmatter"
+            exit 1
+          fi
+          
+          # Check required fields
+          for field in id name description author version license; do
+            if ! head -n 100 SKILL.md | grep -q "^${field}:"; then
+              echo "Error: SKILL.md frontmatter missing required field: ${field}"
+              exit 1
+            fi
+          done
+          
+          echo "✅ SKILL.md validation passed"
+      
+      - name: Validate sub-skills
+        run: |
+          for skill_dir in skills/*/; do
+            skill_file="${skill_dir}SKILL.md"
+            if [ ! -f "$skill_file" ]; then
+              echo "Error: Missing SKILL.md in ${skill_dir}"
+              exit 1
+            fi
+            echo "✅ Found ${skill_file}"
+          done
+          echo "✅ All sub-skills validated"
+
+  validate-examples:
+    name: Validate Examples
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Validate example PRD
+        run: |
+          if [ ! -f "examples/prd-ecommerce.md" ]; then
+            echo "Error: Missing example PRD"
+            exit 1
+          fi
+          echo "✅ Example PRD exists"
+      
+      - name: Validate example outputs
+        run: |
+          if [ ! -f "examples/output-sample/parsed-prd.json" ]; then
+            echo "Error: Missing parsed PRD example"
+            exit 1
+          fi
+          if [ ! -f "examples/output-sample/validation-report.json" ]; then
+            echo "Error: Missing validation report example"
+            exit 1
+          fi
+          if [ ! -d "examples/output-sample/diagrams" ]; then
+            echo "Error: Missing diagrams directory"
+            exit 1
+          fi
+          echo "✅ All example outputs exist"
+
+  check-docs:
+    name: Check Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Check required docs
+        run: |
+          docs=(
+            "README.md"
+            "SKILL.md"
+            "CHANGELOG.md"
+            "LICENSE"
+            ".github/CONTRIBUTING.md"
+            ".github/CODE_OF_CONDUCT.md"
+          )
+          
+          for doc in "${docs[@]}"; do
+            if [ ! -f "$doc" ]; then
+              echo "Error: Missing required document: ${doc}"
+              exit 1
+            fi
+            echo "✅ Found ${doc}"
+          done
+          
+          echo "✅ All required documentation exists"
