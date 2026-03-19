@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "session_id": "example",
+  "project_name": "E-Commerce Platform",
+  "figma_file_key": "abc123XYZ",
+  "design_system": "material-3",
+  "locale": "pt-BR",
+  "namespace": "E-Commerce Platform - Omni Architect",
+  "validation": {
+    "status": "approved",
+    "overall_score": 0.91
+  },
+  "project": {
+    "name": "E-Commerce Platform v2",
+    "overview": "Plataforma de e-commerce B2C focada em experiência mobile-first.",
+    "personas": [
+      {
+        "id": "comprador-maria",
+        "name": "Comprador (Maria)"
+      }
+    ],
+    "features": [
+      {
+        "id": "F001",
+        "name": "Autenticação de Usuário"
+      }
+    ]
+  },
+  "pages": [
+    {
+      "name": "User Flows",
+      "diagrams": [
+        {
+          "id": "flowchart-checkout",
+          "name": "Checkout Flow",
+          "type": "flowchart",
+          "code": "flowchart TD\nA-->B",
+          "source_features": ["F003"],
+          "source_stories": ["US007"],
+          "render_model": {
+            "kind": "flowchart",
+            "nodes": [
+              { "id": "A", "label": "Carrinho", "x": 0, "y": 0 },
+              { "id": "B", "label": "Pagamento", "x": 260, "y": 0 }
+            ],
+            "edges": [{ "from": "A", "to": "B" }]
+          }
+        }
+      ]
+    }
+  ]
+}

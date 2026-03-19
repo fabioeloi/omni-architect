@@ -1,0 +1,9 @@
+{
+  "name": "Omni Architect Importer",
+  "id": "omni-architect-importer",
+  "editorType": ["figma"],
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "documentAccess": "dynamic-page"
+}

@@ -1,0 +1,14 @@
+{
+  "imported_at": "2026-03-18T23:00:00.000Z",
+  "project_name": "E-Commerce Platform",
+  "figma_file_key": "abc123XYZ",
+  "assets": [
+    {
+      "node_id": "10:1",
+      "name": "E-Commerce Platform - Omni Architect / Checkout Flow",
+      "type": "flowchart",
+      "page": "User Flows",
+      "figma_url": "https://www.figma.com/file/abc123XYZ/?node-id=10%3A1"
+    }
+  ]
+}

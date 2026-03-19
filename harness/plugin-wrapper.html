@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Plugin Wrapper</title>
+    <style>
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        margin: 0;
+        background: #f5f7fb;
+        color: #10203a;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        min-height: 100vh;
+      }
+      aside {
+        padding: 24px;
+        border-right: 1px solid #d8e1f0;
+        background: #fff;
+      }
+      main {
+        padding: 24px;
+      }
+      iframe {
+        width: 100%;
+        height: 720px;
+        border: 1px solid #d8e1f0;
+        border-radius: 16px;
+        background: #fff;
+      }
+      button, a.download {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 14px;
+        background: #10203a;
+        color: #fff;
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        margin-right: 8px;
+      }
+      pre {
+        background: #0f1728;
+        color: #dbe7ff;
+        padding: 12px;
+        border-radius: 12px;
+        overflow: auto;
+      }
+      .tree {
+        margin-top: 16px;
+        display: grid;
+        gap: 10px;
+      }
+      .tree-card {
+        background: #fff;
+        border: 1px solid #d8e1f0;
+        border-radius: 14px;
+        padding: 12px;
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 8px 12px;
+        background: #eef4ff;
+        color: #31548a;
+        font-size: 12px;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside>
+        <h1>Wrapper do Plugin</h1>
+        <p>Este wrapper hospeda a UI real do plugin e intercepta o fluxo de import/export sem depender do Figma.</p>
+        <p>
+          <button id="loadPayload">Carregar payload do exemplo</button>
+          <a id="downloadManifest" class="download" href="#" download="figma-import-result.json">Baixar manifesto</a>
+        </p>
+        <p><span class="status" id="wrapperStatus">Inicializando wrapper...</span></p>
+        <h2>Manifesto</h2>
+        <pre id="manifestOutput">Nenhum manifesto gerado ainda.</pre>
+        <div class="tree" id="pageTree"></div>
+      </aside>
+      <main>
+        <iframe id="pluginFrame" src="/plugin-ui" title="Plugin UI"></iframe>
+      </main>
+    </div>
+
+    <script src="/plugin-code.js"></script>
+    <script>
+      class FakeNode {
+        constructor(type) {
+          this.type = type;
+          this.children = [];
+          this.parent = null;
+          this.sharedPluginData = new Map();
+          this.depth = 0;
+          this.x = 0;
+          this.y = 0;
+          this.id = String(FakeNode.nextId++);
+          this.name = `${type}-${this.id}`;
+        }
+        appendChild(node) {
+          node.parent = this;
+          node.depth = this.depth + 1;
+          this.children.push(node);
+          return node;
+        }
+        findAll(predicate) {
+          const matches = [];
+          for (const child of this.children) {
+            if (predicate(child)) matches.push(child);
+            matches.push(...child.findAll(predicate));
+          }
+          return matches;
+        }
+        setSharedPluginData(namespace, key, value) {
+          this.sharedPluginData.set(`${namespace}:${key}`, value);
+        }
+        getSharedPluginData(namespace, key) {
+          return this.sharedPluginData.get(`${namespace}:${key}`) || '';
+        }
+        remove() {
+          if (!this.parent) return;
+          this.parent.children = this.parent.children.filter((child) => child !== this);
+          this.parent = null;
+        }
+        resize(width, height) {
+          this.width = width;
+          this.height = height;
+        }
+      }
+      FakeNode.nextId = 1;
+
+      class FakeTextNode extends FakeNode {
+        constructor() {
+          super('TEXT');
+          this.characters = '';
+        }
+      }
+
+      class FakePageNode extends FakeNode {
+        constructor() {
+          super('PAGE');
+        }
+      }
+
+      class FakeRootNode extends FakeNode {
+        constructor() {
+          super('DOCUMENT');
+        }
+      }
+
+      function createFakeFigma() {
+        FakeNode.nextId = 1;
+        const root = new FakeRootNode();
+        const figma = {
+          root,
+          currentPage: null,
+          ui: { onmessage: null, postMessage() {} },
+          viewport: { scrollAndZoomIntoView() {} },
+          showUI() {},
+          notify() {},
+          closePlugin() {},
+          async loadFontAsync() {},
+          createPage() {
+            const page = new FakePageNode();
+            root.appendChild(page);
+            if (!figma.currentPage) figma.currentPage = page;
+            return page;
+          },
+          createFrame() {
+            return new FakeNode('FRAME');
+          },
+          createText() {
+            return new FakeTextNode();
+          }
+        };
+        figma.createPage();
+        return figma;
+      }
+
+      const pluginFrame = document.getElementById('pluginFrame');
+      const manifestOutput = document.getElementById('manifestOutput');
+      const pageTree = document.getElementById('pageTree');
+      const downloadManifest = document.getElementById('downloadManifest');
+      const wrapperStatus = document.getElementById('wrapperStatus');
+      const fakeFigma = createFakeFigma();
+      let latestPayload = null;
+      let latestManifest = null;
+      const wrapperState = {
+        frameReady: false,
+        payloadLoaded: false,
+        importComplete: false,
+        manifest: null,
+        error: null
+      };
+
+      window.__wrapperState = wrapperState;
+
+      function setStatus(value) {
+        wrapperStatus.textContent = value;
+      }
+
+      function getFrameDocument() {
+        return pluginFrame.contentWindow?.document || null;
+      }
+
+      async function waitForPluginFrameReady() {
+        const existingDocument = getFrameDocument();
+        if (existingDocument?.readyState === 'complete') {
+          wrapperState.frameReady = true;
+          return existingDocument;
+        }
+
+        return new Promise((resolve) => {
+          pluginFrame.addEventListener(
+            'load',
+            () => {
+              wrapperState.frameReady = true;
+              resolve(getFrameDocument());
+            },
+            { once: true }
+          );
+        });
+      }
+
+      function renderPageTree() {
+        pageTree.innerHTML = '';
+        const pages = fakeFigma.root.children.filter((node) => node.type === 'PAGE');
+        pages.forEach((page) => {
+          const card = document.createElement('div');
+          card.className = 'tree-card';
+          card.textContent = `${page.name} • ${page.children.length} nós`;
+          pageTree.appendChild(card);
+        });
+      }
+
+      function updateManifest(manifest) {
+        latestManifest = manifest;
+        window.__lastManifest = manifest;
+        wrapperState.importComplete = true;
+        wrapperState.manifest = manifest;
+        wrapperState.error = null;
+        manifestOutput.textContent = JSON.stringify(manifest, null, 2);
+        const blob = new Blob([JSON.stringify(manifest, null, 2)], {
+          type: 'application/json'
+        });
+        downloadManifest.href = URL.createObjectURL(blob);
+        renderPageTree();
+        setStatus(`Import concluído: ${manifest.assets.length} assets gerados`);
+      }
+
+      document.getElementById('loadPayload').addEventListener('click', async () => {
+        setStatus('Carregando figma-payload.json...');
+        latestPayload = await fetch('/api/figma-payload').then((response) => response.json());
+        const frameDocument = await waitForPluginFrameReady();
+        const textarea = frameDocument.getElementById('payload');
+        textarea.value = JSON.stringify(latestPayload, null, 2);
+        wrapperState.payloadLoaded = true;
+        setStatus('Payload carregado na UI do plugin');
+      });
+
+      pluginFrame.addEventListener('load', () => {
+        wrapperState.frameReady = true;
+        setStatus('UI do plugin pronta');
+      });
+
+      window.addEventListener('message', async (event) => {
+        const message = event.data.pluginMessage;
+        if (!message || message.type !== 'import-payload') {
+          return;
+        }
+
+        try {
+          setStatus('Aplicando payload no mock do Figma...');
+          const payload = JSON.parse(message.payload || JSON.stringify(latestPayload));
+          latestPayload = payload;
+          const manifest = await window.__OMNI_ARCHITECT_PLUGIN__.applyPayload(
+            fakeFigma,
+            payload
+          );
+          updateManifest(manifest);
+          pluginFrame.contentWindow.postMessage(
+            { pluginMessage: { type: 'import-result', manifest } },
+            '*'
+          );
+        } catch (error) {
+          wrapperState.importComplete = false;
+          wrapperState.error = error.message;
+          setStatus(`Erro ao importar payload: ${error.message}`);
+          pluginFrame.contentWindow.postMessage(
+            { pluginMessage: { type: 'import-error', error: error.message } },
+            '*'
+          );
+        }
+      });
+
+      waitForPluginFrameReady().then(() => {
+        setStatus('UI do plugin pronta');
+      });
+    </script>
+  </body>
+</html>

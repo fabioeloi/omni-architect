@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Omni Architect Importer</title>
+    <style>
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        margin: 0;
+        padding: 16px;
+        background: #f5f7fb;
+        color: #10203a;
+      }
+
+      h1 {
+        font-size: 18px;
+        margin: 0 0 12px;
+      }
+
+      p {
+        font-size: 12px;
+        line-height: 1.5;
+        margin: 0 0 12px;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 240px;
+        border: 1px solid #c8d3e6;
+        border-radius: 10px;
+        padding: 12px;
+        box-sizing: border-box;
+        resize: vertical;
+        background: #fff;
+        color: #10203a;
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      button,
+      label {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 14px;
+        font-size: 12px;
+        cursor: pointer;
+        background: #10203a;
+        color: #fff;
+      }
+
+      label {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      input[type='file'] {
+        display: none;
+      }
+
+      pre {
+        background: #0f1728;
+        color: #dbe7ff;
+        padding: 12px;
+        border-radius: 10px;
+        overflow: auto;
+        min-height: 120px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Omni Architect Importer</h1>
+    <p>
+      Importe o conteúdo de <code>figma-payload.json</code> e exporte o manifesto
+      final para uso no comando <code>omni-architect resume</code>.
+    </p>
+
+    <label>
+      Carregar JSON
+      <input id="fileInput" type="file" accept="application/json" />
+    </label>
+
+    <textarea id="payload" placeholder="Cole aqui o conteúdo do figma-payload.json"></textarea>
+
+    <div class="actions">
+      <button id="importButton">Importar no Figma</button>
+      <button id="downloadButton" type="button">Baixar manifesto</button>
+    </div>
+
+    <pre id="output">Nenhum manifesto gerado ainda.</pre>
+
+    <script>
+      const payloadInput = document.getElementById('payload');
+      const output = document.getElementById('output');
+      const fileInput = document.getElementById('fileInput');
+      let latestManifest = null;
+
+      fileInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        payloadInput.value = await file.text();
+      });
+
+      document.getElementById('importButton').addEventListener('click', () => {
+        parent.postMessage(
+          {
+            pluginMessage: {
+              type: 'import-payload',
+              payload: payloadInput.value
+            }
+          },
+          '*'
+        );
+      });
+
+      document.getElementById('downloadButton').addEventListener('click', () => {
+        if (!latestManifest) {
+          return;
+        }
+
+        const blob = new Blob([JSON.stringify(latestManifest, null, 2)], {
+          type: 'application/json'
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'figma-import-result.json';
+        anchor.click();
+        URL.revokeObjectURL(url);
+      });
+
+      window.onmessage = (event) => {
+        const message = event.data.pluginMessage;
+        if (!message) return;
+
+        if (message.type === 'import-result') {
+          latestManifest = message.manifest;
+          output.textContent = JSON.stringify(message.manifest, null, 2);
+        }
+
+        if (message.type === 'import-error') {
+          output.textContent = message.error;
+        }
+      };
+    </script>
+  </body>
+</html>

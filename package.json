@@ -3,13 +3,24 @@
   "version": "1.0.0",
   "description": "Orchestration skill that transforms PRDs into validated Mermaid diagrams and Figma design assets",
   "main": "index.js",
+  "bin": {
+    "omni-architect": "./bin/omni-architect.js"
+  },
   "scripts": {
-    "test": "node --test tests/",
-    "test:coverage": "c8 node --test tests/",
-    "lint": "eslint .",
+    "test": "node --test tests/*.test.js",
+    "test:coverage": "c8 node --test tests/*.test.js",
+    "lint": "node scripts/lint.js",
     "format": "prettier --write .",
     "validate": "node scripts/validate-skill.js",
-    "example": "node examples/run-example.js"
+    "example": "node examples/run-example.js",
+    "harness": "node scripts/run-harness.js",
+    "e2e:install": "npx playwright install chromium",
+    "e2e": "node scripts/run-e2e-local.js",
+    "e2e:mermaid": "node scripts/run-e2e-mermaid.js",
+    "e2e:figma": "node scripts/run-figma-e2e.js",
+    "e2e:figma:bootstrap": "node scripts/figma-auth-bootstrap.js",
+    "docs:capture": "node scripts/capture-doc-screenshots.js",
+    "plugin:release:prepare": "node scripts/plugin-release-prepare.js"
   },
   "keywords": [
     "agent-skill",
@@ -40,9 +51,24 @@
     "node": ">=18.0.0"
   },
   "files": [
+    "bin/",
+    "docs/",
+    "figma-plugin/",
+    "harness/",
+    "lib/",
     "skills/",
+    "scripts/",
     "SKILL.md",
-    "index.js",
-    "lib/"
-  ]
+    "README.md",
+    "index.js"
+  ],
+  "dependencies": {
+    "mermaid": "^11.12.0",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "c8": "^10.1.3",
+    "prettier": "^3.5.3"
+  }
 }

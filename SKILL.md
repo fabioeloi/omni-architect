@@ -8,7 +8,7 @@ description: >
 author: fabioeloi
 version: 1.0.0
 created: "2026-02-06"
-updated: "2026-02-06"
+updated: "2026-03-19"
 license: MIT
 category:
   - Orchestration
@@ -45,7 +45,10 @@ inputs:
   - name: figma_access_token
     type: string
     required: true
-    description: Token de acesso pessoal da API do Figma com permissões de escrita.
+    description: >
+      Token de acesso pessoal do Figma. Continua obrigatório por compatibilidade
+      de contrato, mas nesta v1 plugin-based a mutação do canvas é feita pelo plugin,
+      não pela REST API.
   - name: diagram_types
     type: array
     required: false
@@ -426,9 +429,10 @@ de design no Figma a partir dos diagramas validados.
 **Processo de geração:**
 
 ```
-1. Conectar à API Figma usando figma_access_token
-2. Criar/identificar página no arquivo (figma_file_key)
-3. Para cada diagrama validado:
+1. Executar localmente as phases 1-3 e gerar output/figma/figma-payload.json
+2. Abrir o plugin Omni Architect Importer no arquivo Figma alvo
+3. Importar o payload JSON no plugin
+4. Para cada diagrama validado:
    a. Determinar o design_system base (Material 3, Apple HIG, etc.)
    b. Criar Frame principal com auto-layout
    c. Mapear nós do diagrama → componentes Figma
@@ -437,8 +441,8 @@ de design no Figma a partir dos diagramas validados.
    f. Gerar variantes (mobile, tablet, desktop) se aplicável
    g. Adicionar anotações de desenvolvimento
    h. Registrar node_id e preview_url no output
-4. Criar página de índice com links para todos os frames
-5. Gerar component library com tokens reutilizáveis
+5. Exportar figma-import-result.json do plugin
+6. Executar a finalização local via resume para consolidar o pacote final
 ```
 
 **Estrutura gerada no Figma:**
@@ -503,17 +507,18 @@ npx skills add https://github.com/anthropics/skills --skill frontend-design
 ### Execução Básica
 
 ```bash
-skills run omni-architect \
+npx omni-architect run \
   --prd_source "./docs/prd-ecommerce-v2.md" \
   --project_name "E-Commerce Platform" \
   --figma_file_key "abc123XYZ" \
-  --figma_access_token "$FIGMA_TOKEN"
+  --figma_access_token "$FIGMA_TOKEN" \
+  --validation_mode "auto"
 ```
 
 ### Execução com Todas as Opções
 
 ```bash
-skills run omni-architect \
+npx omni-architect run \
   --prd_source "./docs/prd-ecommerce-v2.md" \
   --project_name "E-Commerce Platform" \
   --figma_file_key "abc123XYZ" \
@@ -523,6 +528,14 @@ skills run omni-architect \
   --validation_mode "interactive" \
   --validation_threshold 0.85 \
   --locale "pt-BR"
+```
+
+### Finalização Após Import no Figma
+
+```bash
+npx omni-architect resume \
+  --session_dir "./output" \
+  --figma_result "./figma-import-result.json"
 ```
 
 ### Uso Programático (em outro skill)
@@ -542,9 +555,16 @@ const result = await omniArchitect.run({
   locale: 'pt-BR'
 });
 
-console.log(`Status: ${result.validation_report.status}`);
-console.log(`Figma assets criados: ${result.figma_assets.length}`);
-console.log(`Score de coerência: ${result.validation_report.overall_score}`);
+console.log(`Status parcial: ${result.status}`);
+console.log(`Payload Figma: ${result.output_paths.figma_payload}`);
+
+const completed = await omniArchitect.resumeFigma({
+  sessionDir: result.output_dir,
+  figmaResultPath: './figma-import-result.json'
+});
+
+console.log(`Status final: ${completed.status}`);
+console.log(`Figma assets criados: ${completed.figma_assets.length}`);
 ```
 
 ---

@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mermaid Preview</title>
+    <style>
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f4f7fb;
+        color: #10203a;
+      }
+      h1 {
+        margin-top: 0;
+      }
+      #summary {
+        margin-bottom: 24px;
+      }
+      #diagrams {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+        gap: 20px;
+      }
+      .diagram-card {
+        background: #fff;
+        border: 1px solid #d8e1f0;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 12px 30px rgba(16, 32, 58, 0.08);
+      }
+      .diagram-card pre {
+        overflow: auto;
+        background: #0f1728;
+        color: #dbe7ff;
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .render {
+        overflow: auto;
+        min-height: 240px;
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+      .status.pending {
+        background: #eef4ff;
+        color: #31548a;
+      }
+      .status.ok {
+        background: #e9f9ee;
+        color: #1d6b38;
+      }
+      .status.error {
+        background: #ffe8e8;
+        color: #8d1f1f;
+      }
+      .error-box {
+        border: 1px solid #f0b5b5;
+        background: #fff5f5;
+        color: #8d1f1f;
+        border-radius: 12px;
+        padding: 12px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Preview Mermaid do Exemplo</h1>
+    <p id="summary">Carregando diagramas...</p>
+    <section id="diagrams"></section>
+
+    <script type="module">
+      import mermaid from '/vendor/mermaid/mermaid.esm.min.mjs';
+
+      mermaid.initialize({ startOnLoad: false, securityLevel: 'loose' });
+
+      const container = document.getElementById('diagrams');
+      const summary = document.getElementById('summary');
+      const renderState = {
+        total: 0,
+        rendered: 0,
+        failed: 0,
+        errors: [],
+        complete: false,
+        startedAt: new Date().toISOString(),
+        finishedAt: null,
+        durationMs: null
+      };
+      const startedAt = performance.now();
+
+      window.__renderState = renderState;
+
+      function updateSummary() {
+        const done = renderState.rendered + renderState.failed;
+        const suffix = renderState.complete
+          ? `concluído em ${renderState.durationMs} ms`
+          : `processados ${done}/${renderState.total}`;
+        summary.textContent =
+          `${renderState.total} diagramas carregados • ` +
+          `${renderState.rendered} renderizados • ` +
+          `${renderState.failed} com erro • ${suffix}`;
+      }
+
+      function sanitizeId(value) {
+        return value.replace(/[^a-z0-9_-]+/gi, '-');
+      }
+
+      function stripMetadata(code) {
+        return code.replace(/^%% Omni Architect.*\n/, '').trim();
+      }
+
+      function escapeHtml(value) {
+        return value
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;');
+      }
+
+      async function renderAllDiagrams() {
+        const diagrams = await fetch('/api/diagrams').then((response) => response.json());
+        renderState.total = diagrams.length;
+        updateSummary();
+
+        for (const [index, diagram] of diagrams.entries()) {
+          const card = document.createElement('article');
+          card.className = 'diagram-card';
+          card.dataset.diagramId = diagram.id;
+
+          const title = document.createElement('h2');
+          title.textContent = diagram.id;
+          card.appendChild(title);
+
+          const status = document.createElement('p');
+          status.className = 'status pending';
+          status.textContent = 'Renderizando...';
+          card.appendChild(status);
+
+          const render = document.createElement('div');
+          render.className = 'render';
+          card.appendChild(render);
+
+          const source = document.createElement('pre');
+          source.textContent = diagram.code;
+          card.appendChild(source);
+          container.appendChild(card);
+
+          try {
+            const { svg } = await mermaid.render(
+              `diagram-${index}-${sanitizeId(diagram.id)}`,
+              stripMetadata(diagram.code)
+            );
+            render.innerHTML = svg;
+            status.className = 'status ok';
+            status.textContent = 'Renderizado com sucesso';
+            renderState.rendered += 1;
+          } catch (error) {
+            render.innerHTML = `<div class="error-box">${escapeHtml(error.message)}</div>`;
+            status.className = 'status error';
+            status.textContent = 'Falha no render';
+            renderState.failed += 1;
+            renderState.errors.push({
+              diagramId: diagram.id,
+              message: error.message
+            });
+          }
+
+          updateSummary();
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+        }
+
+        renderState.complete = true;
+        renderState.finishedAt = new Date().toISOString();
+        renderState.durationMs = Math.round(performance.now() - startedAt);
+        window.__diagramCount = renderState.total;
+        updateSummary();
+      }
+
+      await renderAllDiagrams();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Resumo da Sessão</title>
+    <style>
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f5f7fb;
+        color: #10203a;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #d8e1f0;
+        border-radius: 18px;
+        padding: 18px;
+      }
+      pre {
+        background: #0f1728;
+        color: #dbe7ff;
+        border-radius: 12px;
+        padding: 12px;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Resumo da Sessão Atual</h1>
+    <div class="grid" id="summaryGrid"></div>
+    <pre id="raw"></pre>
+
+    <script type="module">
+      const data = await fetch('/api/summary').then((response) => response.json());
+      const grid = document.getElementById('summaryGrid');
+
+      const cards = [
+        ['Projeto', data.project || 'n/d'],
+        ['Validation', `${data.validation?.status || 'n/d'} (${data.validation?.overall_score || 'n/d'})`],
+        ['Diagramas', String(data.diagrams.length)],
+        ['Figma Assets', String(data.figmaAssetsCount)]
+      ];
+
+      cards.forEach(([title, value]) => {
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.innerHTML = `<h2>${title}</h2><p>${value}</p>`;
+        grid.appendChild(card);
+      });
+
+      document.getElementById('raw').textContent = JSON.stringify(data, null, 2);
+      window.__summary = data;
+      window.__summaryReady = true;
+    </script>
+  </body>
+</html>
