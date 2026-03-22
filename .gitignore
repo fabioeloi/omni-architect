@@ -4,3 +4,5 @@ output/
 coverage/
 *.log
 playwright/.auth/
+.specstory/
+.vscode/
