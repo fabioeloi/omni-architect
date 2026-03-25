@@ -68,15 +68,19 @@ O Omni Architect insere uma camada explícita de validação lógica via Mermaid
 
 ## 🎯 Como Funciona
 
-O fluxo atual do projeto é local-first e plugin-based:
+O Omni Architect oferece **duas formas de integração com Figma**:
+
+### 🚀 Modo REST API (Novo - Recomendado para Automação)
+
+Integração direta via Figma Agent API - sem etapas manuais:
 
 ```mermaid
 graph LR
     A["📄 Phase 1\nPRD Parser"] --> B["📊 Phase 2\nMermaid Gen"]
     B --> C["✅ Phase 3\nLogic Validate"]
-    C -->|"approved"| D["🎯 Phase 4\nFigma Payload Prep"]
-    D --> E["🎨 Phase 5\nPlugin Import + Resume"]
-    C -->|"rejected"| F["🔄 Refino do PRD e Diagramas"]
+    C -->|"approved"| D["🎯 Phase 4\nFigma REST API"]
+    D --> E["📦 Phase 5\nAsset Delivery"]
+    C -->|"rejected"| F["🔄 Refino do PRD"]
     F --> A
 
     style A fill:#4A90D9,stroke:#333,color:#fff
@@ -87,28 +91,77 @@ graph LR
     style F fill:#E74C3C,stroke:#333,color:#fff
 ```
 
+**Vantagens:**
+- ✅ **Totalmente automatizado** - sem importação manual
+- ✅ **Compatível com CI/CD** - integração contínua
+- ✅ **Mais rápido** - <30 segundos end-to-end
+- ✅ **Ideal para pipelines** - atualização automática ao mudar PRD
+
+### 🔌 Modo Plugin (Original - Estável)
+
+Integração via Plugin Figma - com controle manual:
+
+```mermaid
+graph LR
+    A["📄 Phase 1\nPRD Parser"] --> B["📊 Phase 2\nMermaid Gen"]
+    B --> C["✅ Phase 3\nLogic Validate"]
+    C -->|"approved"| D["🎯 Phase 4\nFigma Payload Prep"]
+    D --> E["🎨 Phase 5\nPlugin Import + Resume"]
+    C -->|"rejected"| F["🔄 Refino do PRD"]
+    F --> A
+
+    style A fill:#4A90D9,stroke:#333,color:#fff
+    style B fill:#7B68EE,stroke:#333,color:#fff
+    style C fill:#FFA500,stroke:#333,color:#fff
+    style D fill:#1ABC9C,stroke:#333,color:#fff
+    style E fill:#2ECC71,stroke:#333,color:#fff
+    style F fill:#E74C3C,stroke:#333,color:#fff
+```
+
+**Vantagens:**
+- ✅ **Controle manual** - revisão antes de importar
+- ✅ **Mais estável** - API madura
+- ✅ **Funciona sem service token** - usa token pessoal
+
+> 💡 **Novo!** Com a abertura do canvas Figma para agentes, você pode escolher o modo que melhor se adapta ao seu workflow. Veja [Figma Agent API Examples](./docs/figma-agent-api-examples.md) para detalhes.
+
 | Fase | Input | Output |
 |------|-------|--------|
 | **1. PRD Parser** | PRD Markdown | `parsed-prd.json` com features, stories, entidades e fluxos |
 | **2. Mermaid Gen** | PRD parseado | `diagrams/*.mmd` e modelos de render |
 | **3. Logic Validate** | PRD + Mermaid | `validation-report.json` com score e warnings |
-| **4. Figma Payload Prep** | Diagramas validados | `figma/figma-payload.json` |
-| **5. Plugin Import + Asset Delivery** | Payload + manifesto do plugin | `figma-assets.json`, `HANDOFF.md` e log consolidado |
+| **4. Figma Integration** | Diagramas validados | REST API (auto) ou `figma/figma-payload.json` (plugin) |
+| **5. Asset Delivery** | Manifesto do Figma | `figma-assets.json`, `HANDOFF.md` e log consolidado |
 
 ### O que está pronto hoje
 
 - CLI `run` e `resume`
 - API programática `run(options)` e `resumeFigma(options)`
+- **Integração REST API com Figma Agent API** (novo)
+- **Modo híbrido: auto-seleção entre REST API e Plugin** (novo)
 - harness local com preview Mermaid, wrapper do plugin e resumo da sessão
 - e2e local com Playwright para Mermaid e plugin wrapper
 - smoke local-only para Figma real
 - preparo de release do plugin
 
-### O que muda em relação à versão antiga
+### Escolhendo o modo de integração
 
-- o caminho canônico agora é `run -> plugin/wrapper -> resume`
-- a escrita no Figma é plugin-based, não REST-first
-- `figma_access_token` continua obrigatório por compatibilidade de contrato, mas a mutação do canvas passa pelo plugin
+```yaml
+# .omni-architect.yml
+
+# Modo REST API (automação total)
+figma_service_token: "${FIGMA_SERVICE_TOKEN}"  # Service account
+figma_integration_mode: "rest_api"
+
+# Modo Plugin (controle manual)
+figma_access_token: "${FIGMA_ACCESS_TOKEN}"    # Personal token
+figma_integration_mode: "plugin"
+
+# Modo Auto (recomendado - escolhe automaticamente)
+figma_service_token: "${FIGMA_SERVICE_TOKEN}"  # Preferido
+figma_access_token: "${FIGMA_ACCESS_TOKEN}"    # Fallback
+figma_integration_mode: "auto"                 # Default
+```
 
 ---
 
